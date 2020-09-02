@@ -27,17 +27,19 @@ with model:
     # returns thousands of random variables(stochastic) from the posterior distributions of λ1,λ2 and τ.
     observation = pm.Poisson("obs", lambda_, observed=count_data)
 
+    # observation can be used in a way such as observation.distribution.data, but not in this tutorial.
+
 with model:
     step = pm.Metropolis()
     trace = pm.sample(10000, tune=5000, step=step)
 
-# now all values of the sample are determined.
+# now all variables are determined from the stochastic generator.
 lambda_1_samples = trace['lambda_1']
 lambda_2_samples = trace['lambda_2']
 tau_samples = trace['tau']
 
-#histogram of the samples:
 
+# histogram of the samples
 ax = plt.subplot(311)
 ax.set_autoscaley_on(False)
 
