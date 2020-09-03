@@ -114,3 +114,10 @@ print("Probability site A is WORSE than site B: %.3f" % \
 
 print("Probability site A is BETTER than site B: %.3f" % \
     np.mean(delta_samples > 0))
+
+# If this probability is too high for comfortable decision-making,
+# we can perform more trials on site B
+# (as site B has less samples to begin with,
+# each additional data point for site B contributes more inferential "power"
+# than each additional data point for site A).
+

@@ -28,6 +28,7 @@ with model:
     observation = pm.Poisson("obs", lambda_, observed=count_data)
 
     # observation can be used in a way such as observation.distribution.data, but not in this tutorial.
+    # 아무튼 model 컨텍스트 안에서 선언되는 pm 함수들을 통해 deterministic count_data로 시뮬레이션이 됨.
 
 with model:
     step = pm.Metropolis()
