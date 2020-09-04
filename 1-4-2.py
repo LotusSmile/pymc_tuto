@@ -3,7 +3,7 @@ import theano.tensor as tt
 import matplotlib.pyplot as plt
 import numpy as np
 
-count_data = np.loadtxt('txtdata.csv')
+count_data = np.loadtxt('data/txtdata.csv')
 n_count_data = len(count_data)
 alpha = 1.0 / count_data.mean()
 
