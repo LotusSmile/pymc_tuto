@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pymc3 as pm
 import theano.tensor as tt
-
+import matplotlib as mpl
+from scipy import stats
 
 data = np.loadtxt("data/mixture_data.csv", delimiter=",")
 
@@ -172,3 +173,73 @@ plt.title("Traces of unknown center parameters")
 leg = plt.legend(loc="upper right")
 leg.get_frame().set_alpha(0.8)
 plt.xlabel("Steps")
+
+# identify the clusters. We have determined posterior distributions for our unknowns.
+std_trace = trace["sds"][25000:]
+prev_std_trace = trace["sds"][:25000]
+
+_i = [1, 2, 3, 4]
+for i in range(2):
+    plt.subplot(2, 2, _i[2 * i])
+    plt.title("Posterior of center of cluster %d" % i)
+    plt.hist(center_trace[:, i], color=colors[i], bins=30,
+             histtype="stepfilled")
+
+    plt.subplot(2, 2, _i[2 * i + 1])
+    plt.title("Posterior of standard deviation of cluster %d" % i)
+    plt.hist(std_trace[:, i], color=colors[i], bins=30,
+             histtype="stepfilled")
+    # plt.autoscale(tight=True)
+
+plt.tight_layout()
+
+
+# We are also given the posterior distributions for the labels of the data point,
+# which is present in trace["assignment"]
+plt.cmap = mpl.colors.ListedColormap(colors)
+plt.imshow(trace["assignment"][::400, np.argsort(data)],
+       cmap=plt.cmap, aspect=.4, alpha=.9)
+plt.xticks(np.arange(0, data.shape[0], 40),
+       ["%.2f" % s for s in np.sort(data)[::40]])
+plt.ylabel("posterior sample")
+plt.xlabel("value of $i$th data point")
+plt.title("Posterior labels of data points")
+
+# A more clear diagram is below
+cmap = mpl.colors.LinearSegmentedColormap.from_list("BMH", colors)
+assign_trace = trace["assignment"]
+plt.scatter(data, 1 - assign_trace.mean(axis=0), cmap=cmap,
+        c=assign_trace.mean(axis=0), s=50)
+plt.ylim(-0.05, 1.05)
+plt.xlim(35, 300)
+plt.title("Probability of data point belonging to cluster 0")
+plt.ylabel("probability")
+plt.xlabel("value of data point")
+
+
+# How can we choose just a single pair of values for the mean and variance
+# and determine a sorta-best-fit gaussian?
+# One quick and dirty way (which has nice theoretical properties we will see in Chapter 5),
+# is to use the mean of the posterior distributions.
+# Below we overlay the Normal density functions,
+# using the mean of the posterior distributions as the chosen parameters, with our observed data.
+norm = stats.norm
+x = np.linspace(20, 300, 500)
+posterior_center_means = center_trace.mean(axis=0)
+posterior_std_means = std_trace.mean(axis=0)
+posterior_p_mean = trace["p"].mean()
+
+plt.hist(data, bins=20, histtype="step", normed=True, color="k",
+     lw=2, label="histogram of data")
+y = posterior_p_mean * norm.pdf(x, loc=posterior_center_means[0],
+                                scale=posterior_std_means[0])
+plt.plot(x, y, label="Cluster 0 (using posterior-mean parameters)", lw=3)
+plt.fill_between(x, y, color=colors[1], alpha=0.3)
+
+y = (1 - posterior_p_mean) * norm.pdf(x, loc=posterior_center_means[1],
+                                      scale=posterior_std_means[1])
+plt.plot(x, y, label="Cluster 1 (using posterior-mean parameters)", lw=3)
+plt.fill_between(x, y, color=colors[0], alpha=0.3)
+
+plt.legend(loc="upper left")
+plt.title("Visualizing Clusters using posterior-mean parameters")
