@@ -243,3 +243,4 @@ plt.fill_between(x, y, color=colors[0], alpha=0.3)
 
 plt.legend(loc="upper left")
 plt.title("Visualizing Clusters using posterior-mean parameters")
+
